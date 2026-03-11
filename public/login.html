@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>登录 - 行政处罚预警平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --success: #059669;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --wechat-green: #07c160;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .login-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+        }
+        
+        .logo-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        
+        .logo-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 28px 0;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        
+        .divider span {
+            padding: 0 16px;
+        }
+        
+        /* 企微登录按钮 */
+        .wechat-login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--wechat-green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .wechat-login-btn:hover {
+            background: #06ad56;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3);
+        }
+        
+        .wechat-login-btn i {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .wechat-login-btn:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* 配置提示 */
+        .config-alert {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .config-alert-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .config-alert-title i {
+            margin-right: 8px;
+        }
+        
+        .config-alert-text {
+            font-size: 13px;
+            color: #a16207;
+            line-height: 1.5;
+        }
+        
+        /* 演示登录 */
+        .demo-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px dashed var(--border);
+        }
+        
+        .demo-title {
+            font-size: 12px;
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        
+        .demo-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .demo-btn:hover {
+            background: #e5e7eb;
+        }
+        
+        /* 底部信息 */
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        /* 加载状态 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 错误提示 */
+        .error-alert {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #dc2626;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .error-alert.active {
+            display: block;
+        }
+        
+        /* 用户信息 */
+        .user-info {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .user-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 28px;
+            color: white;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .user-dept {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        
+        .enter-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .enter-btn:hover {
+            background: #1e3a8a;
+        }
+        
+        /* 特性列表 */
+        .features {
+            margin-top: 24px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        
+        .feature-item i {
+            width: 24px;
+            color: var(--success);
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo区域 -->
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h1 class="logo-title">行政处罚预警平台</h1>
+                <p class="logo-subtitle">政府检查与处罚事件管理系统</p>
+            </div>
+            
+            <!-- 错误提示 -->
+            <div class="error-alert" id="errorAlert">
+                <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+            </div>
+            
+            <!-- 配置提示 -->
+            <div class="config-alert" id="configAlert" style="display: none;">
+                <div class="config-alert-title">
+                    <i class="fas fa-cog"></i> 企微登录待配置
+                </div>
+                <div class="config-alert-text">
+                    管理员需要配置企业微信CorpID和AgentID后才能使用企微登录。请联系管理员完成配置。
+                </div>
+            </div>
+            
+            <!-- 加载中 -->
+            <div class="loading" id="loadingSection">
+                <div class="loading-spinner"></div>
+                <p>正在检查登录状态...</p>
+            </div>
+            
+            <!-- 登录区域 -->
+            <div id="loginSection">
+                <div class="divider"><span>企业微信登录</span></div>
+                
+                <a href="/api/wechat/auth" class="wechat-login-btn" id="wechatLoginBtn">
+                    <i class="fab fa-weixin"></i>
+                    使用企业微信登录
+                </a>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>政府检查事件实时跟进</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>行政处罚挂网自动提醒</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>整改到期风险智能预警</span>
+                    </div>
+                </div>
+                
+                <!-- 演示登录（未配置企微时显示） -->
+                <div class="demo-section" id="demoSection" style="display: none;">
+                    <div class="demo-title">— 开发测试 —</div>
+                    <button class="demo-btn" onclick="demoLogin()">
+                        <i class="fas fa-user"></i> 演示账号登录
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 已登录区域 -->
+            <div id="userSection" style="display: none;">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-name" id="userName">--</div>
+                    <div class="user-dept" id="userDept">--</div>
+                </div>
+                <a href="/" class="enter-btn">
+                    <i class="fas fa-arrow-right"></i> 进入系统
+                </a>
+                <button class="demo-btn" onclick="logout()" style="margin-top: 12px;">
+                    <i class="fas fa-sign-out-alt"></i> 退出登录
+                </button>
+            </div>
+        </div>
+        
+        <div class="login-footer">
+            <p>© 2024 行政处罚预警平台 | 企业微信安全登录</p>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 检查URL错误参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            if (error) {
+                showError(error);
+            }
+            
+            // 显示加载
+            document.getElementById('loadingSection').classList.add('active');
+            document.getElementById('loginSection').style.display = 'none';
+            
+            // 检查企微配置
+            try {
+                const configRes = await fetch('/api/wechat/config');
+                const config = await configRes.json();
+                
+                if (!config.enabled) {
+                    // 未配置企微，显示演示登录
+                    document.getElementById('configAlert').style.display = 'block';
+                    document.getElementById('wechatLoginBtn').style.display = 'none';
+                    document.getElementById('demoSection').style.display = 'block';
+                }
+            } catch (e) {
+                console.error('获取配置失败:', e);
+            }
+            
+            // 检查登录状态
+            try {
+                const userRes = await fetch('/api/user/info');
+                const userData = await userRes.json();
+                
+                document.getElementById('loadingSection').classList.remove('active');
+                
+                if (userData.success && userData.isAuthenticated) {
+                    // 已登录
+                    showUserInfo(userData.user);
+                } else {
+                    // 未登录
+                    document.getElementById('loginSection').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingSection').classList.remove('active');
+                document.getElementById('loginSection').style.display = 'block';
+            }
+        });
+        
+        // 显示用户信息
+        function showUserInfo(user) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userSection').style.display = 'block';
+            document.getElementById('userName').textContent = user.name || user.userId;
+            document.getElementById('userDept').textContent = user.department ? user.department.join(' / ') : '企业微信用户';
+            
+            if (user.avatar) {
+                document.getElementById('userAvatar').innerHTML = `<img src="${user.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            }
+        }
+        
+        // 显示错误
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            document.getElementById('errorText').textContent = message;
+            alert.classList.add('active');
+            setTimeout(() => alert.classList.remove('active'), 5000);
+        }
+        
+        // 演示登录
+        async function demoLogin() {
+            try {
+                const res = await fetch('/api/demo-login', { method: 'POST' });
+                if (res.ok) {
+                    location.href = '/';
+                } else {
+                    showError('演示登录失败');
+                }
+            } catch (error) {
+                showError('登录失败，请重试');
+            }
+        }
+        
+        // 退出登录
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                location.reload();
+            } catch (error) {
+                console.error('退出失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>

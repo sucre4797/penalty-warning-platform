@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>数据上传 - 行政处罚预警平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --success: #059669;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-back {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* 上传区域 */
+        .upload-section {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+        
+        .upload-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .upload-card.active {
+            border: 2px solid var(--primary);
+        }
+        
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(30, 64, 175, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 28px;
+            color: var(--primary);
+        }
+        
+        .upload-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .upload-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(30, 64, 175, 0.05);
+        }
+        
+        .upload-area i {
+            font-size: 40px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+        
+        .upload-area-text {
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        
+        .upload-area-hint {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        /* 模板下载 */
+        .template-section {
+            background: rgba(30, 64, 175, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        
+        .template-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .template-list {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .template-list li {
+            margin-bottom: 4px;
+        }
+        
+        /* 进度条 */
+        .progress-section {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .progress-section.active {
+            display: block;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        /* 结果展示 */
+        .result-section {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .result-section.success {
+            display: block;
+            background: rgba(5, 150, 105, 0.1);
+            border: 1px solid var(--success);
+        }
+        
+        .result-section.error {
+            display: block;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid var(--danger);
+        }
+        
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-title i {
+            margin-right: 8px;
+        }
+        
+        .result-section.success .result-title {
+            color: var(--success);
+        }
+        
+        .result-section.error .result-title {
+            color: var(--danger);
+        }
+        
+        .result-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        .result-stat {
+            text-align: center;
+        }
+        
+        .result-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .result-stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 11px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        /* PC端适配 */
+        @media (min-width: 768px) {
+            .main-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+            }
+            
+            .sidebar {
+                width: 260px;
+                background: var(--card);
+                border-right: 1px solid var(--border);
+                min-height: 100vh;
+                position: fixed;
+                left: 0;
+                top: 0;
+                padding: 24px;
+            }
+            
+            .sidebar-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .sidebar-title i {
+                margin-right: 10px;
+            }
+            
+            .sidebar-menu {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .sidebar-item {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                border-radius: 8px;
+                text-decoration: none;
+                color: var(--text);
+                transition: all 0.2s;
+            }
+            
+            .sidebar-item:hover, .sidebar-item.active {
+                background: rgba(30, 64, 175, 0.1);
+                color: var(--primary);
+            }
+            
+            .sidebar-item i {
+                width: 24px;
+                margin-right: 12px;
+            }
+            
+            .content-area {
+                margin-left: 260px;
+                flex: 1;
+                padding: 24px;
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .upload-section {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+            
+            .header {
+                position: relative;
+                border-radius: 12px;
+                margin-bottom: 24px;
+            }
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- PC端侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-title">
+                <i class="fas fa-shield-alt"></i>
+                行政处罚预警平台
+            </div>
+            <nav class="sidebar-menu">
+                <a href="module1.html" class="sidebar-item">
+                    <i class="fas fa-clipboard-check"></i>
+                    检查事件跟进
+                </a>
+                <a href="module2.html" class="sidebar-item">
+                    <i class="fas fa-bell"></i>
+                    新增检查提醒
+                </a>
+                <a href="module3.html" class="sidebar-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    整改到期提醒
+                </a>
+                <a href="module4.html" class="sidebar-item">
+                    <i class="fas fa-gavel"></i>
+                    处罚挂网提醒
+                </a>
+                <a href="upload.html" class="sidebar-item active">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    数据上传
+                </a>
+                <a href="index.html" class="sidebar-item">
+                    <i class="fas fa-home"></i>
+                    返回首页
+                </a>
+            </nav>
+        </div>
+        
+        <div class="content-area">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="header-top">
+                    <a href="index.html" class="header-back"><i class="fas fa-arrow-left"></i></a>
+                    <span class="header-title">数据上传</span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <!-- 上传区域 -->
+            <div class="upload-section">
+                <!-- 政府检查事件上传 -->
+                <div class="upload-card" id="inspectionCard">
+                    <div class="upload-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h3 class="upload-title">政府检查事件</h3>
+                    <p class="upload-desc">
+                        上传政府检查事件数据，支持Excel文件(.xlsx/.xls)<br>
+                        系统将根据"事件编码"自动去重
+                    </p>
+                    
+                    <div class="upload-area" id="inspectionUploadArea"
+                         onclick="document.getElementById('inspectionFile').click()"
+                         ondrop="dropHandler(event, 'inspection')"
+                         ondragover="dragOverHandler(event)"
+                         ondragleave="dragLeaveHandler(event)">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div class="upload-area-text">点击或拖拽文件到此处上传</div>
+                        <div class="upload-area-hint">支持 .xlsx, .xls 格式</div>
+                    </div>
+                    <input type="file" id="inspectionFile" class="file-input" accept=".xlsx,.xls" 
+                           onchange="fileSelected(this, 'inspection')">
+                    
+                    <div class="template-section">
+                        <div class="template-title"><i class="fas fa-list"></i> 必需字段</div>
+                        <ul class="template-list">
+                            <li>城市、区域编号、阵地编号、报事时间、事件编码</li>
+                            <li>报事组织、核心信息、检查部门名称、检查结果</li>
+                            <li>整改截止日期、能否按时完成整改、调度详情</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="progress-section" id="inspectionProgress">
+                        <div class="progress-info">
+                            <span>上传中...</span>
+                            <span id="inspectionPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="inspectionProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section" id="inspectionResult">
+                        <div class="result-title">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="inspectionResultText">上传成功</span>
+                        </div>
+                        <div class="result-stats">
+                            <div class="result-stat">
+                                <div class="result-stat-value" id="inspectionAdded">0</div>
+                                <div class="result-stat-label">新增</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="result-stat-value" id="inspectionUpdated">0</div>
+                                <div class="result-stat-label">更新</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="result-stat-value" id="inspectionTotal">0</div>
+                                <div class="result-stat-label">总计</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 行政处罚事件上传 -->
+                <div class="upload-card" id="penaltyCard">
+                    <div class="upload-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <h3 class="upload-title">行政处罚事件</h3>
+                    <p class="upload-desc">
+                        上传行政处罚事件数据，支持Excel文件(.xlsx/.xls)<br>
+                        系统将根据"决定文书号"自动去重
+                    </p>
+                    
+                    <div class="upload-area" id="penaltyUploadArea"
+                         onclick="document.getElementById('penaltyFile').click()"
+                         ondrop="dropHandler(event, 'penalty')"
+                         ondragover="dragOverHandler(event)"
+                         ondragleave="dragLeaveHandler(event)">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div class="upload-area-text">点击或拖拽文件到此处上传</div>
+                        <div class="upload-area-hint">支持 .xlsx, .xls 格式</div>
+                    </div>
+                    <input type="file" id="penaltyFile" class="file-input" accept=".xlsx,.xls" 
+                           onchange="fileSelected(this, 'penalty')">
+                    
+                    <div class="template-section">
+                        <div class="template-title" style="color: #8b5cf6;"><i class="fas fa-list"></i> 必需字段</div>
+                        <ul class="template-list">
+                            <li>项目名称、军种、区域、阵地编码</li>
+                            <li>事件编号、企业名称、决定文书号</li>
+                            <li>违法事实、处罚结果、处罚金额、处罚日期</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="progress-section" id="penaltyProgress">
+                        <div class="progress-info">
+                            <span>上传中...</span>
+                            <span id="penaltyPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="penaltyProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-section" id="penaltyResult">
+                        <div class="result-title">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="penaltyResultText">上传成功</span>
+                        </div>
+                        <div class="result-stats">
+                            <div class="result-stat">
+                                <div class="result-stat-value" id="penaltyAdded">0</div>
+                                <div class="result-stat-label">新增</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="result-stat-value" id="penaltyUpdated">0</div>
+                                <div class="result-stat-label">更新</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="result-stat-value" id="penaltyTotal">0</div>
+                                <div class="result-stat-label">总计</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            首页
+        </a>
+        <a href="module1.html" class="nav-item">
+            <i class="fas fa-clipboard-list"></i>
+            跟进
+        </a>
+        <a href="upload.html" class="nav-item active">
+            <i class="fas fa-cloud-upload-alt"></i>
+            上传
+        </a>
+        <a href="settings.html" class="nav-item">
+            <i class="fas fa-cog"></i>
+            设置
+        </a>
+    </nav>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 拖拽处理
+        function dragOverHandler(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+        
+        function dragLeaveHandler(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+        
+        function dropHandler(e, type) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFile(files[0], type);
+            }
+        }
+        
+        // 文件选择
+        function fileSelected(input, type) {
+            if (input.files.length > 0) {
+                uploadFile(input.files[0], type);
+            }
+        }
+        
+        // 上传文件
+        async function uploadFile(file, type) {
+            const card = document.getElementById(type + 'Card');
+            const progressSection = document.getElementById(type + 'Progress');
+            const progressBar = document.getElementById(type + 'ProgressBar');
+            const percentText = document.getElementById(type + 'Percent');
+            const resultSection = document.getElementById(type + 'Result');
+            
+            // 重置状态
+            resultSection.className = 'result-section';
+            progressSection.classList.add('active');
+            card.classList.add('active');
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                // 模拟进度
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 20;
+                    if (progress > 90) progress = 90;
+                    progressBar.style.width = progress + '%';
+                    percentText.textContent = Math.floor(progress) + '%';
+                }, 200);
+                
+                const endpoint = type === 'inspection' ? '/api/inspection/upload' : '/api/penalty/upload';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                percentText.textContent = '100%';
+                
+                const data = await response.json();
+                
+                setTimeout(() => {
+                    progressSection.classList.remove('active');
+                    
+                    if (data.success) {
+                        resultSection.classList.add('success');
+                        document.getElementById(type + 'ResultText').textContent = '上传成功';
+                        document.getElementById(type + 'Added').textContent = data.added || 0;
+                        document.getElementById(type + 'Updated').textContent = data.updated || 0;
+                        document.getElementById(type + 'Total').textContent = data.total || 0;
+                        showToast(`上传成功！新增 ${data.added} 条，更新 ${data.updated} 条`);
+                    } else {
+                        resultSection.classList.add('error');
+                        document.getElementById(type + 'ResultText').textContent = '上传失败: ' + data.message;
+                        showToast('上传失败: ' + data.message);
+                    }
+                }, 500);
+                
+            } catch (error) {
+                progressSection.classList.remove('active');
+                resultSection.classList.add('error');
+                document.getElementById(type + 'ResultText').textContent = '上传失败: ' + error.message;
+                showToast('上传失败，请重试');
+            }
+        }
+        
+        // 显示提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // 页面加载时检查URL参数
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const type = params.get('type');
+            if (type === 'inspection') {
+                document.getElementById('inspectionCard').scrollIntoView({ behavior: 'smooth' });
+            } else if (type === 'penalty') {
+                document.getElementById('penaltyCard').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>

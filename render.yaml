@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: penalty-warning-platform
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/check-auth
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: BASE_URL
+        value: https://penalty-warning-platform.onrender.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: WECHAT_CORPID
+        sync: false
+      - key: WECHAT_AGENTID
+        sync: false
+      - key: WECHAT_SECRET
+        sync: false

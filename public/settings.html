@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>设置 - 行政处罚预警平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --success: #059669;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-back {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* 设置列表 */
+        .settings-section {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+        
+        .settings-group {
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .group-title {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-light);
+            background: var(--bg);
+            font-weight: 500;
+        }
+        
+        .settings-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-item:hover {
+            background: rgba(30, 64, 175, 0.05);
+        }
+        
+        .settings-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+        
+        .settings-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .settings-icon.orange { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .settings-icon.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .settings-icon.green { background: rgba(5, 150, 105, 0.1); color: #10b981; }
+        .settings-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+        
+        .settings-content {
+            flex: 1;
+        }
+        
+        .settings-label {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .settings-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .settings-value {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        
+        .settings-arrow {
+            color: var(--text-light);
+        }
+        
+        /* 当前设置展示 */
+        .current-scope-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .scope-title {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+        
+        .scope-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .scope-detail {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .change-scope-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 11px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        /* PC端适配 */
+        @media (min-width: 768px) {
+            .main-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+            }
+            
+            .sidebar {
+                width: 260px;
+                background: var(--card);
+                border-right: 1px solid var(--border);
+                min-height: 100vh;
+                position: fixed;
+                left: 0;
+                top: 0;
+                padding: 24px;
+            }
+            
+            .sidebar-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .sidebar-title i {
+                margin-right: 10px;
+            }
+            
+            .sidebar-menu {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .sidebar-item {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                border-radius: 8px;
+                text-decoration: none;
+                color: var(--text);
+                transition: all 0.2s;
+            }
+            
+            .sidebar-item:hover, .sidebar-item.active {
+                background: rgba(30, 64, 175, 0.1);
+                color: var(--primary);
+            }
+            
+            .sidebar-item i {
+                width: 24px;
+                margin-right: 12px;
+            }
+            
+            .content-area {
+                margin-left: 260px;
+                flex: 1;
+                padding: 24px;
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .header {
+                position: relative;
+                border-radius: 12px;
+                margin-bottom: 24px;
+            }
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- PC端侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-title">
+                <i class="fas fa-shield-alt"></i>
+                行政处罚预警平台
+            </div>
+            <nav class="sidebar-menu">
+                <a href="module1.html" class="sidebar-item">
+                    <i class="fas fa-clipboard-check"></i>
+                    检查事件跟进
+                </a>
+                <a href="module2.html" class="sidebar-item">
+                    <i class="fas fa-bell"></i>
+                    新增检查提醒
+                </a>
+                <a href="module3.html" class="sidebar-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    整改到期提醒
+                </a>
+                <a href="module4.html" class="sidebar-item">
+                    <i class="fas fa-gavel"></i>
+                    处罚挂网提醒
+                </a>
+                <a href="upload.html" class="sidebar-item">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    数据上传
+                </a>
+                <a href="index.html" class="sidebar-item">
+                    <i class="fas fa-home"></i>
+                    返回首页
+                </a>
+            </nav>
+        </div>
+        
+        <div class="content-area">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="header-top">
+                    <a href="index.html" class="header-back"><i class="fas fa-arrow-left"></i></a>
+                    <span class="header-title">设置</span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <!-- 设置内容 -->
+            <div class="settings-section">
+                <!-- 当前范围设置 -->
+                <div class="current-scope-card">
+                    <div class="scope-title">当前数据范围</div>
+                    <div class="scope-value" id="scopeValue">全国</div>
+                    <div class="scope-detail" id="scopeDetail">查看所有区域和阵地的数据</div>
+                    <button class="change-scope-btn" onclick="changeScope()">
+                        <i class="fas fa-exchange-alt"></i> 切换范围
+                    </button>
+                </div>
+                
+                <!-- 数据管理 -->
+                <div class="settings-group">
+                    <div class="group-title">数据管理</div>
+                    <div class="settings-item" onclick="location.href='upload.html'">
+                        <div class="settings-icon blue">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-label">数据上传</div>
+                            <div class="settings-desc">上传检查事件或处罚记录</div>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </div>
+                    <div class="settings-item" onclick="syncData()">
+                        <div class="settings-icon purple">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-label">同步腾讯文档</div>
+                            <div class="settings-desc">手动触发数据同步</div>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </div>
+                </div>
+                
+                <!-- 关于 -->
+                <div class="settings-group">
+                    <div class="group-title">关于</div>
+                    <div class="settings-item">
+                        <div class="settings-icon green">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-label">版本信息</div>
+                            <div class="settings-desc">行政处罚预警平台 v1.0.0</div>
+                        </div>
+                        <span class="settings-value">v1.0.0</span>
+                    </div>
+                    <div class="settings-item" onclick="clearCache()">
+                        <div class="settings-icon orange">
+                            <i class="fas fa-broom"></i>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-label">清除缓存</div>
+                            <div class="settings-desc">清除本地存储的数据</div>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </div>
+                </div>
+                
+                <!-- 危险操作 -->
+                <div class="settings-group">
+                    <div class="group-title">危险操作</div>
+                    <div class="settings-item" onclick="resetAll()">
+                        <div class="settings-icon red">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-label">重置所有设置</div>
+                            <div class="settings-desc">清除所有本地数据和设置</div>
+                        </div>
+                        <i class="fas fa-chevron-right settings-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            首页
+        </a>
+        <a href="module1.html" class="nav-item">
+            <i class="fas fa-clipboard-list"></i>
+            跟进
+        </a>
+        <a href="upload.html" class="nav-item">
+            <i class="fas fa-cloud-upload-alt"></i>
+            上传
+        </a>
+        <a href="settings.html" class="nav-item active">
+            <i class="fas fa-cog"></i>
+            设置
+        </a>
+    </nav>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let userScope = JSON.parse(localStorage.getItem('userScope') || '{}');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            updateScopeDisplay();
+        });
+        
+        // 更新范围显示
+        function updateScopeDisplay() {
+            let scopeText = '全国';
+            let scopeDesc = '查看所有区域和阵地的数据';
+            
+            if (userScope.type === 'region' && userScope.region) {
+                scopeText = userScope.region + '区域';
+                scopeDesc = `仅查看 ${userScope.region} 区域的数据`;
+            } else if (userScope.type === 'position' && userScope.position) {
+                scopeText = userScope.position;
+                scopeDesc = `仅查看 ${userScope.position} 阵地的数据`;
+            }
+            
+            document.getElementById('scopeValue').textContent = scopeText;
+            document.getElementById('scopeDetail').textContent = scopeDesc;
+        }
+        
+        // 切换范围
+        function changeScope() {
+            if (confirm('确定要重新选择数据范围吗？')) {
+                localStorage.removeItem('userScope');
+                location.href = 'index.html';
+            }
+        }
+        
+        // 同步数据
+        async function syncData() {
+            showToast('正在同步腾讯文档数据...');
+            try {
+                const response = await fetch('/api/penalty/sync', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('同步成功');
+                } else {
+                    showToast('同步失败: ' + data.message);
+                }
+            } catch (error) {
+                showToast('同步失败，请稍后重试');
+            }
+        }
+        
+        // 清除缓存
+        function clearCache() {
+            if (confirm('确定要清除缓存吗？这不会删除您的数据范围设置。')) {
+                // 保留用户范围设置
+                const scope = localStorage.getItem('userScope');
+                localStorage.clear();
+                if (scope) localStorage.setItem('userScope', scope);
+                showToast('缓存已清除');
+            }
+        }
+        
+        // 重置所有
+        function resetAll() {
+            if (confirm('警告：这将清除所有本地数据和设置，确定要继续吗？')) {
+                localStorage.clear();
+                showToast('已重置，即将刷新页面');
+                setTimeout(() => location.href = 'index.html', 1500);
+            }
+        }
+        
+        // 显示提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

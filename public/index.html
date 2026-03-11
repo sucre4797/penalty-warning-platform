@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>行政处罚预警平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --success: #059669;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        /* 首次设置弹窗 */
+        .setup-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .setup-content {
+            background: var(--card);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        
+        .setup-title {
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .setup-subtitle {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        
+        .scope-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .scope-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .scope-option:hover, .scope-option.active {
+            border-color: var(--primary);
+            background: rgba(30, 64, 175, 0.05);
+        }
+        
+        .scope-option i {
+            font-size: 24px;
+            margin-right: 16px;
+            color: var(--primary);
+        }
+        
+        .scope-option-text {
+            flex: 1;
+        }
+        
+        .scope-option-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .scope-option-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .scope-selector {
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .scope-selector.active {
+            display: block;
+        }
+        
+        .selector-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        
+        .region-btn {
+            padding: 12px 8px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .region-btn:hover, .region-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .position-search {
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        .position-search input {
+            width: 100%;
+            padding: 12px 16px;
+            padding-left: 40px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .position-search i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+        
+        .position-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .position-list.active {
+            display: block;
+        }
+        
+        .position-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .position-item:hover {
+            background: var(--bg);
+        }
+        
+        .position-item:last-child {
+            border-bottom: none;
+        }
+        
+        .selected-position {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(30, 64, 175, 0.1);
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 14px;
+            display: none;
+        }
+        
+        .selected-position.active {
+            display: block;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #1e3a8a;
+        }
+        
+        .btn-primary:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+        }
+        
+        /* 主页面 */
+        .main-container {
+            display: none;
+        }
+        
+        .main-container.active {
+            display: block;
+        }
+        
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header-scope {
+            font-size: 12px;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .header-time {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        /* 用户信息 */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* 统计数据卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 16px;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.danger {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            color: white;
+        }
+        
+        .stat-card.warning {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            color: white;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        /* 模块列表 */
+        .modules-section {
+            padding: 0 16px 100px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 8px;
+            color: var(--primary);
+        }
+        
+        .module-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .module-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text);
+        }
+        
+        .module-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .module-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+        }
+        
+        .module-icon.blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .module-icon.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .module-icon.orange { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .module-icon.purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        
+        .module-info {
+            flex: 1;
+        }
+        
+        .module-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        
+        .module-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .module-badge {
+            background: var(--danger);
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .module-arrow {
+            color: var(--text-light);
+            margin-left: 8px;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 11px;
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active, .nav-item:hover {
+            color: var(--primary);
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        /* 数据上传入口 */
+        .upload-section {
+            padding: 16px;
+        }
+        
+        .upload-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .upload-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .upload-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .upload-btn {
+            padding: 12px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .upload-btn:hover {
+            border-color: var(--primary);
+            background: rgba(30, 64, 175, 0.05);
+        }
+        
+        .upload-btn i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 4px;
+            color: var(--primary);
+        }
+        
+        /* PC端适配 */
+        @media (min-width: 768px) {
+            .main-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+            }
+            
+            .sidebar {
+                width: 260px;
+                background: var(--card);
+                border-right: 1px solid var(--border);
+                min-height: 100vh;
+                position: fixed;
+                left: 0;
+                top: 0;
+                padding: 24px;
+            }
+            
+            .sidebar-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .sidebar-title i {
+                margin-right: 10px;
+            }
+            
+            .sidebar-menu {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .sidebar-item {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                border-radius: 8px;
+                text-decoration: none;
+                color: var(--text);
+                transition: all 0.2s;
+            }
+            
+            .sidebar-item:hover, .sidebar-item.active {
+                background: rgba(30, 64, 175, 0.1);
+                color: var(--primary);
+            }
+            
+            .sidebar-item i {
+                width: 24px;
+                margin-right: 12px;
+            }
+            
+            .sidebar-item .badge {
+                margin-left: auto;
+                background: var(--danger);
+                color: white;
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+            
+            .content-area {
+                margin-left: 260px;
+                flex: 1;
+                padding: 24px;
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .header {
+                position: relative;
+                border-radius: 12px;
+                margin-bottom: 24px;
+            }
+            
+            .module-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* 隐藏文件输入 */
+        input[type="file"] {
+            display: none;
+        }
+        
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 首次设置弹窗 -->
+    <div class="setup-modal" id="setupModal">
+        <div class="setup-content">
+            <h2 class="setup-title"><i class="fas fa-shield-alt"></i> 行政处罚预警平台</h2>
+            <p class="setup-subtitle">请选择您需要关注的数据范围</p>
+            
+            <div class="scope-options">
+                <div class="scope-option" data-scope="national" onclick="selectScope('national')">
+                    <i class="fas fa-globe-asia"></i>
+                    <div class="scope-option-text">
+                        <div class="scope-option-title">全国数据</div>
+                        <div class="scope-option-desc">查看所有区域和阵地的数据</div>
+                    </div>
+                    <i class="fas fa-check-circle" style="display:none"></i>
+                </div>
+                
+                <div class="scope-option" data-scope="region" onclick="selectScope('region')">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <div class="scope-option-text">
+                        <div class="scope-option-title">区域级数据</div>
+                        <div class="scope-option-desc">选择一个区域查看相关数据</div>
+                    </div>
+                    <i class="fas fa-check-circle" style="display:none"></i>
+                </div>
+                
+                <div class="scope-option" data-scope="position" onclick="selectScope('position')">
+                    <i class="fas fa-building"></i>
+                    <div class="scope-option-text">
+                        <div class="scope-option-title">阵地级数据</div>
+                        <div class="scope-option-desc">选择具体阵地查看专属数据</div>
+                    </div>
+                    <i class="fas fa-check-circle" style="display:none"></i>
+                </div>
+            </div>
+            
+            <!-- 区域选择 -->
+            <div class="scope-selector" id="regionSelector">
+                <label class="selector-label">选择区域</label>
+                <div class="region-grid">
+                    <button class="region-btn" onclick="selectRegion('A')">A区</button>
+                    <button class="region-btn" onclick="selectRegion('B')">B区</button>
+                    <button class="region-btn" onclick="selectRegion('C')">C区</button>
+                    <button class="region-btn" onclick="selectRegion('D')">D区</button>
+                    <button class="region-btn" onclick="selectRegion('E')">E区</button>
+                    <button class="region-btn" onclick="selectRegion('F')">F区</button>
+                    <button class="region-btn" onclick="selectRegion('G')">G区</button>
+                    <button class="region-btn" onclick="selectRegion('H')">H区</button>
+                </div>
+            </div>
+            
+            <!-- 阵地选择 -->
+            <div class="scope-selector" id="positionSelector">
+                <label class="selector-label">选择阵地</label>
+                <div class="position-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="positionSearch" placeholder="输入阵地编号快速查找" oninput="filterPositions(this.value)">
+                </div>
+                <div class="position-list" id="positionList"></div>
+                <div class="selected-position" id="selectedPosition"></div>
+            </div>
+            
+            <button class="btn-primary" id="confirmBtn" onclick="confirmScope()" disabled>
+                确认进入
+            </button>
+        </div>
+    </div>
+
+    <!-- 主页面 -->
+    <div class="main-container" id="mainContainer">
+        <!-- PC端侧边栏 -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-title">
+                <i class="fas fa-shield-alt"></i>
+                行政处罚预警平台
+            </div>
+            <nav class="sidebar-menu">
+                <a href="module1.html" class="sidebar-item">
+                    <i class="fas fa-clipboard-check"></i>
+                    检查事件跟进
+                </a>
+                <a href="module2.html" class="sidebar-item">
+                    <i class="fas fa-bell"></i>
+                    新增检查提醒
+                    <span class="badge" id="sidebarBadge2">0</span>
+                </a>
+                <a href="module3.html" class="sidebar-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    整改到期提醒
+                    <span class="badge" id="sidebarBadge3">0</span>
+                </a>
+                <a href="module4.html" class="sidebar-item">
+                    <i class="fas fa-gavel"></i>
+                    处罚挂网提醒
+                </a>
+                <a href="upload.html" class="sidebar-item">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    数据上传
+                </a>
+            </nav>
+        </div>
+        
+        <div class="content-area">
+            <!-- 移动端头部 -->
+            <div class="header" id="mobileHeader">
+                <div class="header-top">
+                    <h1 class="header-title"><i class="fas fa-shield-alt"></i> 行政处罚预警平台</h1>
+                    <div class="user-menu">
+                        <span class="header-scope" onclick="resetScope()">
+                            <i class="fas fa-filter"></i> <span id="currentScope">全国</span>
+                        </span>
+                        <div class="user-info" id="userInfo">
+                            <div class="user-avatar"><i class="fas fa-user"></i></div>
+                            <span id="userName">--</span>
+                        </div>
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> 退出
+                        </button>
+                    </div>
+                </div>
+                <div class="header-time" id="headerTime"></div>
+            </div>
+            
+            <!-- 统计数据 -->
+            <div class="stats-grid">
+                <div class="stat-card danger">
+                    <div class="stat-label">近3日新增不合格</div>
+                    <div class="stat-value" id="statRecentUnqualified">0</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">临近整改到期</div>
+                    <div class="stat-value" id="statUrgentDeadline">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">检查事件总数</div>
+                    <div class="stat-value" id="statTotalInspection">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">行政处罚记录</div>
+                    <div class="stat-value" id="statTotalPenalty">0</div>
+                </div>
+            </div>
+            
+            <!-- 模块列表 -->
+            <div class="modules-section">
+                <h3 class="section-title"><i class="fas fa-th-large"></i> 功能模块</h3>
+                <div class="module-list">
+                    <a href="module1.html" class="module-card">
+                        <div class="module-icon blue">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="module-info">
+                            <div class="module-name">政府检查事件跟进</div>
+                            <div class="module-desc">查看和更新所有政府检查事件</div>
+                        </div>
+                        <i class="fas fa-chevron-right module-arrow"></i>
+                    </a>
+                    
+                    <a href="module2.html" class="module-card">
+                        <div class="module-icon red">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="module-info">
+                            <div class="module-name">近三日新增提醒</div>
+                            <div class="module-desc">近3天新增的不合格检查事件</div>
+                        </div>
+                        <span class="module-badge" id="moduleBadge2">0</span>
+                    </a>
+                    
+                    <a href="module3.html" class="module-card">
+                        <div class="module-icon orange">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="module-info">
+                            <div class="module-name">临近整改到期提醒</div>
+                            <div class="module-desc">10天内整改到期且未闭环事件</div>
+                        </div>
+                        <span class="module-badge" id="moduleBadge3">0</span>
+                    </a>
+                    
+                    <a href="module4.html" class="module-card">
+                        <div class="module-icon purple">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <div class="module-info">
+                            <div class="module-name">行政处罚挂网提醒</div>
+                            <div class="module-desc">政府网站已公示的行政处罚</div>
+                        </div>
+                        <i class="fas fa-chevron-right module-arrow"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 数据上传 -->
+            <div class="upload-section">
+                <div class="upload-card">
+                    <div class="upload-title"><i class="fas fa-database"></i> 数据管理</div>
+                    <div class="upload-buttons">
+                        <div class="upload-btn" onclick="location.href='upload.html?type=inspection'">
+                            <i class="fas fa-file-upload"></i>
+                            上传检查事件
+                        </div>
+                        <div class="upload-btn" onclick="location.href='upload.html?type=penalty'">
+                            <i class="fas fa-file-excel"></i>
+                            上传处罚记录
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <nav class="bottom-nav" id="bottomNav">
+        <a href="index.html" class="nav-item active">
+            <i class="fas fa-home"></i>
+            首页
+        </a>
+        <a href="module1.html" class="nav-item">
+            <i class="fas fa-clipboard-list"></i>
+            跟进
+        </a>
+        <a href="upload.html" class="nav-item">
+            <i class="fas fa-cloud-upload-alt"></i>
+            上传
+        </a>
+        <a href="settings.html" class="nav-item">
+            <i class="fas fa-cog"></i>
+            设置
+        </a>
+    </nav>
+    
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 全局数据
+        let userScope = JSON.parse(localStorage.getItem('userScope') || '{}');
+        let positions = [];
+        let selectedRegion = '';
+        let selectedPosition = '';
+        let currentScopeType = '';
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            loadPositions();
+            checkFirstVisit();
+            updateHeaderTime();
+            setInterval(updateHeaderTime, 60000);
+            loadStatistics();
+        });
+        
+        // 加载用户信息
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user/info');
+                const data = await response.json();
+                
+                if (data.success && data.isAuthenticated) {
+                    document.getElementById('userName').textContent = data.user.name || data.user.userId;
+                } else {
+                    // 未登录，跳转到登录页
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+            }
+        }
+        
+        // 退出登录
+        async function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                try {
+                    await fetch('/api/logout', { method: 'POST' });
+                    window.location.href = '/login.html';
+                } catch (error) {
+                    console.error('退出失败:', error);
+                }
+            }
+        }
+        
+        // 加载阵地列表
+        async function loadPositions() {
+            try {
+                const response = await fetch('/api/metadata');
+                const data = await response.json();
+                positions = data.positions || [];
+            } catch (error) {
+                console.error('加载阵地列表失败:', error);
+            }
+        }
+        
+        // 检查是否首次访问
+        function checkFirstVisit() {
+            if (!userScope.type) {
+                document.getElementById('setupModal').style.display = 'flex';
+                document.getElementById('mainContainer').classList.remove('active');
+            } else {
+                document.getElementById('setupModal').style.display = 'none';
+                document.getElementById('mainContainer').classList.add('active');
+                updateScopeDisplay();
+            }
+        }
+        
+        // 选择范围类型
+        function selectScope(type) {
+            currentScopeType = type;
+            
+            // 更新UI
+            document.querySelectorAll('.scope-option').forEach(el => {
+                el.classList.remove('active');
+                el.querySelector('.fa-check-circle').style.display = 'none';
+            });
+            document.querySelector(`[data-scope="${type}"]`).classList.add('active');
+            document.querySelector(`[data-scope="${type}"] .fa-check-circle`).style.display = 'block';
+            
+            // 显示对应的子选择器
+            document.getElementById('regionSelector').classList.remove('active');
+            document.getElementById('positionSelector').classList.remove('active');
+            
+            if (type === 'region') {
+                document.getElementById('regionSelector').classList.add('active');
+                document.getElementById('confirmBtn').disabled = !selectedRegion;
+            } else if (type === 'position') {
+                document.getElementById('positionSelector').classList.add('active');
+                document.getElementById('confirmBtn').disabled = !selectedPosition;
+            } else {
+                document.getElementById('confirmBtn').disabled = false;
+            }
+        }
+        
+        // 选择区域
+        function selectRegion(region) {
+            selectedRegion = region;
+            document.querySelectorAll('.region-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.startsWith(region));
+            });
+            document.getElementById('confirmBtn').disabled = false;
+        }
+        
+        // 筛选阵地
+        function filterPositions(keyword) {
+            const list = document.getElementById('positionList');
+            if (!keyword) {
+                list.classList.remove('active');
+                return;
+            }
+            
+            const filtered = positions.filter(p => p.toLowerCase().includes(keyword.toLowerCase()));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="position-item">无匹配结果</div>';
+            } else {
+                list.innerHTML = filtered.map(p => 
+                    `<div class="position-item" onclick="selectPosition('${p}')">${p}</div>`
+                ).join('');
+            }
+            list.classList.add('active');
+        }
+        
+        // 选择阵地
+        function selectPosition(position) {
+            selectedPosition = position;
+            document.getElementById('positionSearch').value = position;
+            document.getElementById('positionList').classList.remove('active');
+            document.getElementById('selectedPosition').textContent = `已选择: ${position}`;
+            document.getElementById('selectedPosition').classList.add('active');
+            document.getElementById('confirmBtn').disabled = false;
+        }
+        
+        // 确认范围选择
+        function confirmScope() {
+            userScope = {
+                type: currentScopeType,
+                region: selectedRegion,
+                position: selectedPosition
+            };
+            localStorage.setItem('userScope', JSON.stringify(userScope));
+            
+            document.getElementById('setupModal').style.display = 'none';
+            document.getElementById('mainContainer').classList.add('active');
+            
+            updateScopeDisplay();
+            loadStatistics();
+            showToast('设置已保存');
+        }
+        
+        // 更新范围显示
+        function updateScopeDisplay() {
+            let scopeText = '全国';
+            if (userScope.type === 'region') {
+                scopeText = `${userScope.region}区域`;
+            } else if (userScope.type === 'position') {
+                scopeText = userScope.position;
+            }
+            document.getElementById('currentScope').textContent = scopeText;
+        }
+        
+        // 重置范围
+        function resetScope() {
+            if (confirm('确定要重新选择数据范围吗？')) {
+                localStorage.removeItem('userScope');
+                userScope = {};
+                selectedRegion = '';
+                selectedPosition = '';
+                currentScopeType = '';
+                document.querySelectorAll('.scope-option, .region-btn').forEach(el => el.classList.remove('active'));
+                document.getElementById('confirmBtn').disabled = true;
+                checkFirstVisit();
+            }
+        }
+        
+        // 加载统计数据
+        async function loadStatistics() {
+            try {
+                // 获取统计数据
+                const response = await fetch('/api/statistics');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statTotalInspection').textContent = data.stats.inspection.total;
+                    document.getElementById('statTotalPenalty').textContent = data.stats.penalty.total;
+                }
+                
+                // 获取近3日不合格数量
+                const recentResponse = await fetch('/api/inspection/recent-unqualified');
+                const recentData = await recentResponse.json();
+                if (recentData.success) {
+                    const count = recentData.total || 0;
+                    document.getElementById('statRecentUnqualified').textContent = count;
+                    document.getElementById('moduleBadge2').textContent = count;
+                    document.getElementById('sidebarBadge2').textContent = count;
+                }
+                
+                // 获取临近整改到期数量
+                const urgentResponse = await fetch('/api/inspection/urgent-deadline');
+                const urgentData = await urgentResponse.json();
+                if (urgentData.success) {
+                    const count = urgentData.total || 0;
+                    document.getElementById('statUrgentDeadline').textContent = count;
+                    document.getElementById('moduleBadge3').textContent = count;
+                    document.getElementById('sidebarBadge3').textContent = count;
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+            }
+        }
+        
+        // 更新头部时间
+        function updateHeaderTime() {
+            const now = new Date();
+            document.getElementById('headerTime').textContent = 
+                `数据更新于: ${now.toLocaleString('zh-CN')}`;
+        }
+        
+        // 显示提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

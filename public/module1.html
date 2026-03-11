@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>政府检查事件跟进 - 行政处罚预警平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --success: #059669;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-back {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .header-filter {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        /* 筛选面板 */
+        .filter-panel {
+            background: var(--card);
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: none;
+        }
+        
+        .filter-panel.active {
+            display: block;
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        
+        .filter-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .filter-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+        }
+        
+        /* 统计栏 */
+        .stats-bar {
+            background: var(--card);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        /* 事件列表 */
+        .events-list {
+            padding: 12px;
+            padding-bottom: 80px;
+        }
+        
+        .event-card {
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .event-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .event-code {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+        }
+        
+        .event-date {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .event-body {
+            padding: 16px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .info-label {
+            color: var(--text-light);
+            width: 100px;
+            flex-shrink: 0;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: var(--text);
+        }
+        
+        .info-value.highlight {
+            color: var(--danger);
+            font-weight: 500;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 4px;
+        }
+        
+        .tag-danger {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+        }
+        
+        .tag-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .tag-success {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+        }
+        
+        /* 评估区域 */
+        .assessment-section {
+            background: rgba(30, 64, 175, 0.03);
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .assessment-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .assessment-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .assessment-item {
+            flex: 1;
+        }
+        
+        .assessment-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        
+        .assessment-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+        
+        .assessment-date {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+        
+        .assessment-textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .save-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        
+        .save-btn:hover {
+            background: #047857;
+        }
+        
+        /* 加载更多 */
+        .load-more {
+            text-align: center;
+            padding: 16px;
+            color: var(--text-light);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--border);
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 11px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        /* PC端适配 */
+        @media (min-width: 768px) {
+            .main-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+            }
+            
+            .sidebar {
+                width: 260px;
+                background: var(--card);
+                border-right: 1px solid var(--border);
+                min-height: 100vh;
+                position: fixed;
+                left: 0;
+                top: 0;
+                padding: 24px;
+            }
+            
+            .sidebar-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .sidebar-title i {
+                margin-right: 10px;
+            }
+            
+            .sidebar-menu {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .sidebar-item {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                border-radius: 8px;
+                text-decoration: none;
+                color: var(--text);
+                transition: all 0.2s;
+            }
+            
+            .sidebar-item:hover, .sidebar-item.active {
+                background: rgba(30, 64, 175, 0.1);
+                color: var(--primary);
+            }
+            
+            .sidebar-item i {
+                width: 24px;
+                margin-right: 12px;
+            }
+            
+            .content-area {
+                margin-left: 260px;
+                flex: 1;
+                padding: 24px;
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .events-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .event-card {
+                margin-bottom: 0;
+            }
+            
+            .header {
+                position: relative;
+                border-radius: 12px;
+                margin-bottom: 24px;
+            }
+        }
+        
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- PC端侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-title">
+                <i class="fas fa-shield-alt"></i>
+                行政处罚预警平台
+            </div>
+            <nav class="sidebar-menu">
+                <a href="module1.html" class="sidebar-item active">
+                    <i class="fas fa-clipboard-check"></i>
+                    检查事件跟进
+                </a>
+                <a href="module2.html" class="sidebar-item">
+                    <i class="fas fa-bell"></i>
+                    新增检查提醒
+                </a>
+                <a href="module3.html" class="sidebar-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    整改到期提醒
+                </a>
+                <a href="module4.html" class="sidebar-item">
+                    <i class="fas fa-gavel"></i>
+                    处罚挂网提醒
+                </a>
+                <a href="upload.html" class="sidebar-item">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    数据上传
+                </a>
+                <a href="index.html" class="sidebar-item">
+                    <i class="fas fa-home"></i>
+                    返回首页
+                </a>
+            </nav>
+        </div>
+        
+        <div class="content-area">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="header-top">
+                    <a href="index.html" class="header-back"><i class="fas fa-arrow-left"></i></a>
+                    <span class="header-title">政府检查事件跟进</span>
+                    <button class="header-filter" onclick="toggleFilter()">
+                        <i class="fas fa-filter"></i> 筛选
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 筛选面板 -->
+            <div class="filter-panel" id="filterPanel">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <div class="filter-label">区域</div>
+                        <select class="filter-input" id="filterRegion">
+                            <option value="">全部区域</option>
+                            <option value="A">A区</option>
+                            <option value="B">B区</option>
+                            <option value="C">C区</option>
+                            <option value="D">D区</option>
+                            <option value="E">E区</option>
+                            <option value="F">F区</option>
+                            <option value="G">G区</option>
+                            <option value="H">H区</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <div class="filter-label">阵地</div>
+                        <input type="text" class="filter-input" id="filterPosition" placeholder="输入阵地编号">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <div class="filter-label">报事开始日期</div>
+                        <input type="date" class="filter-input" id="filterStartDate">
+                    </div>
+                    <div class="filter-item">
+                        <div class="filter-label">报事结束日期</div>
+                        <input type="date" class="filter-input" id="filterEndDate">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <div class="filter-label">检查结果</div>
+                        <select class="filter-input" id="filterQualified">
+                            <option value="">全部</option>
+                            <option value="合格">合格</option>
+                            <option value="不合格">不合格</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <div class="filter-label">关键词</div>
+                        <input type="text" class="filter-input" id="filterKeyword" placeholder="城市/编码/信息">
+                    </div>
+                </div>
+                <div class="filter-btns">
+                    <button class="btn btn-secondary" onclick="resetFilter()">重置</button>
+                    <button class="btn btn-primary" onclick="applyFilter()">应用筛选</button>
+                </div>
+            </div>
+            
+            <!-- 统计栏 -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-number" id="statTotal">0</div>
+                    <div class="stat-label">事件总数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statUnqualified">0</div>
+                    <div class="stat-label">不合格</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statUrgent">0</div>
+                    <div class="stat-label">需关注</div>
+                </div>
+            </div>
+            
+            <!-- 事件列表 -->
+            <div class="events-list" id="eventsList">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            首页
+        </a>
+        <a href="module1.html" class="nav-item active">
+            <i class="fas fa-clipboard-list"></i>
+            跟进
+        </a>
+        <a href="upload.html" class="nav-item">
+            <i class="fas fa-cloud-upload-alt"></i>
+            上传
+        </a>
+        <a href="settings.html" class="nav-item">
+            <i class="fas fa-cog"></i>
+            设置
+        </a>
+    </nav>
+    
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let events = [];
+        let filteredEvents = [];
+        let userScope = JSON.parse(localStorage.getItem('userScope') || '{}');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+        });
+        
+        // 加载事件列表
+        async function loadEvents() {
+            try {
+                // 构建查询参数
+                const params = new URLSearchParams();
+                
+                // 应用用户范围设置
+                if (userScope.type === 'region' && userScope.region) {
+                    params.append('region', userScope.region);
+                } else if (userScope.type === 'position' && userScope.position) {
+                    params.append('position', userScope.position);
+                }
+                
+                const response = await fetch(`/api/inspection/events?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    events = data.data;
+                    filteredEvents = events;
+                    renderEvents();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('eventsList').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>加载失败，请稍后重试</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 渲染事件列表
+        function renderEvents() {
+            const container = document.getElementById('eventsList');
+            
+            if (filteredEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>暂无数据</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredEvents.map(event => `
+                <div class="event-card" data-code="${event['事件编码']}">
+                    <div class="event-header">
+                        <span class="event-code">${event['事件编码']}</span>
+                        <span class="event-date">${formatDate(event['报事时间'])}</span>
+                    </div>
+                    <div class="event-body">
+                        <div class="info-row">
+                            <span class="info-label">城市</span>
+                            <span class="info-value">${event['城市'] || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">区域/阵地</span>
+                            <span class="info-value">
+                                <span class="tag tag-warning">${event['区域编号'] || '-'}</span>
+                                <span class="tag tag-success">${event['阵地编号'] || '-'}</span>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">核心信息</span>
+                            <span class="info-value">${event['核心信息'] || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">检查部门</span>
+                            <span class="info-value">${event['检查部门名称'] || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">行政级别</span>
+                            <span class="info-value">${event['所属行政级别'] || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">检查结果</span>
+                            <span class="info-value ${event['检查结果是否合格'] === '不合格' ? 'highlight' : ''}">
+                                ${event['检查结果是否合格'] || '-'}
+                            </span>
+                        </div>
+                        ${event['不合格项'] ? `
+                        <div class="info-row">
+                            <span class="info-label">不合格项</span>
+                            <span class="info-value highlight">${event['不合格项']}</span>
+                        </div>
+                        ` : ''}
+                        <div class="info-row">
+                            <span class="info-label">整改截止</span>
+                            <span class="info-value ${isUrgent(event['政府要求整改截止日期']) ? 'highlight' : ''}">
+                                ${formatDate(event['政府要求整改截止日期'])}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">能否按时完成</span>
+                            <span class="info-value">${event['能否按时完成整改'] || '-'}</span>
+                        </div>
+                        ${event['调度详情'] ? `
+                        <div class="info-row">
+                            <span class="info-label">调度详情</span>
+                            <span class="info-value">${event['调度详情']}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="assessment-section">
+                        <div class="assessment-title"><i class="fas fa-clipboard-check"></i> 风险评估</div>
+                        <div class="assessment-row">
+                            <div class="assessment-item">
+                                <div class="assessment-label">初次评估</div>
+                                <select class="assessment-select" onchange="saveAssessment('${event['事件编码']}', 'first', this.value)">
+                                    <option value="">请选择</option>
+                                    <option value="无行政处罚风险" ${event['阵地对接人初次评估'] === '无行政处罚风险' ? 'selected' : ''}>无行政处罚风险</option>
+                                    <option value="存在行政处罚风险" ${event['阵地对接人初次评估'] === '存在行政处罚风险' ? 'selected' : ''}>存在行政处罚风险</option>
+                                </select>
+                                ${event['初次评估日期'] ? `<div class="assessment-date">评估日期: ${formatDate(event['初次评估日期'])}</div>` : ''}
+                            </div>
+                            <div class="assessment-item">
+                                <div class="assessment-label">二次评估</div>
+                                <select class="assessment-select" onchange="saveAssessment('${event['事件编码']}', 'second', this.value)">
+                                    <option value="">请选择</option>
+                                    <option value="无行政处罚风险" ${event['阵地对接人二次评估'] === '无行政处罚风险' ? 'selected' : ''}>无行政处罚风险</option>
+                                    <option value="存在行政处罚风险" ${event['阵地对接人二次评估'] === '存在行政处罚风险' ? 'selected' : ''}>存在行政处罚风险</option>
+                                </select>
+                                ${event['二次评估日期'] ? `<div class="assessment-date">评估日期: ${formatDate(event['二次评估日期'])}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="assessment-label">评估说明 (最多1000字)</div>
+                        <textarea class="assessment-textarea" placeholder="请输入评估说明..." 
+                            onblur="saveAssessment('${event['事件编码']}', 'note', this.value)">${event['评估说明'] || ''}</textarea>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 保存评估
+        async function saveAssessment(eventCode, type, value) {
+            try {
+                const body = {};
+                if (type === 'first') body.firstAssessment = value;
+                if (type === 'second') body.secondAssessment = value;
+                if (type === 'note') body.assessmentNote = value;
+                
+                const response = await fetch(`/api/inspection/evaluate/${eventCode}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast('保存成功');
+                    // 更新本地数据
+                    const event = events.find(e => e['事件编码'] === eventCode);
+                    if (event) {
+                        if (type === 'first') {
+                            event['阵地对接人初次评估'] = value;
+                            event['初次评估日期'] = data.data['初次评估日期'];
+                        }
+                        if (type === 'second') {
+                            event['阵地对接人二次评估'] = value;
+                            event['二次评估日期'] = data.data['二次评估日期'];
+                        }
+                        if (type === 'note') event['评估说明'] = value;
+                    }
+                    renderEvents();
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                showToast('保存失败，请重试');
+            }
+        }
+        
+        // 更新统计
+        function updateStats() {
+            const unqualified = filteredEvents.filter(e => e['检查结果是否合格'] === '不合格').length;
+            const urgent = filteredEvents.filter(e => isUrgent(e['政府要求整改截止日期'])).length;
+            
+            document.getElementById('statTotal').textContent = filteredEvents.length;
+            document.getElementById('statUnqualified').textContent = unqualified;
+            document.getElementById('statUrgent').textContent = urgent;
+        }
+        
+        // 判断是否紧急（10天内到期）
+        function isUrgent(deadline) {
+            if (!deadline) return false;
+            const days = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+            return days <= 10 && days >= 0;
+        }
+        
+        // 格式化日期
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+        
+        // 切换筛选面板
+        function toggleFilter() {
+            document.getElementById('filterPanel').classList.toggle('active');
+        }
+        
+        // 应用筛选
+        function applyFilter() {
+            const region = document.getElementById('filterRegion').value;
+            const position = document.getElementById('filterPosition').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            const qualified = document.getElementById('filterQualified').value;
+            const keyword = document.getElementById('filterKeyword').value;
+            
+            filteredEvents = events.filter(event => {
+                if (region && event['区域编号'] !== region) return false;
+                if (position && !event['阵地编号']?.includes(position)) return false;
+                if (startDate && event['报事时间'] < startDate) return false;
+                if (endDate && event['报事时间'] > endDate) return false;
+                if (qualified && event['检查结果是否合格'] !== qualified) return false;
+                if (keyword) {
+                    const kw = keyword.toLowerCase();
+                    const match = (event['城市']?.toLowerCase().includes(kw)) ||
+                                 (event['事件编码']?.toLowerCase().includes(kw)) ||
+                                 (event['核心信息']?.toLowerCase().includes(kw));
+                    if (!match) return false;
+                }
+                return true;
+            });
+            
+            renderEvents();
+            updateStats();
+            toggleFilter();
+        }
+        
+        // 重置筛选
+        function resetFilter() {
+            document.getElementById('filterRegion').value = '';
+            document.getElementById('filterPosition').value = '';
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            document.getElementById('filterQualified').value = '';
+            document.getElementById('filterKeyword').value = '';
+            
+            filteredEvents = events;
+            renderEvents();
+            updateStats();
+        }
+        
+        // 显示提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>
